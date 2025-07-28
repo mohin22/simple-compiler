@@ -17,30 +17,45 @@ TOKEN_HDR := $(INC_DIR)/token.h
 LEXER_HDR := $(INC_DIR)/lexer.h
 
 # Test files
-TEST_TOKEN := $(TEST_DIR)/test_token.c
-TEST_LEXER := $(TEST_DIR)/test_lexer.c
+TEST_TOKEN_SRC := $(TEST_DIR)/test_token.c
+TEST_LEXER_SRC := $(TEST_DIR)/test_lexer.c
 
 # Output executables
 TOKEN_EXE := $(BIN_DIR)/test_token
 LEXER_EXE := $(BIN_DIR)/test_lexer
 
-# Create bin directory automatically
+# Ensure bin directory
 $(BIN_DIR):
-	mkdir -p $(BIN_DIR)
+	@mkdir -p $(BIN_DIR)
 
-# Default target
+# Default target builds all tests
 all: $(BIN_DIR) $(TOKEN_EXE) $(LEXER_EXE)
 
 # Build test_token
-$(TOKEN_EXE): $(TOKEN_SRC) $(TEST_TOKEN) $(TOKEN_HDR)
-	$(CC) $(CFLAGS) -o $@ $(TEST_TOKEN) $(TOKEN_SRC)
+$(TOKEN_EXE): $(TOKEN_SRC) $(TEST_TOKEN_SRC) $(TOKEN_HDR)
+	@echo "Compiling test_token..."
+	$(CC) $(CFLAGS) -o $@ $(TEST_TOKEN_SRC) $(TOKEN_SRC)
 
 # Build test_lexer
-$(LEXER_EXE): $(TOKEN_SRC) $(LEXER_SRC) $(TEST_LEXER) $(LEXER_HDR) $(TOKEN_HDR)
-	$(CC) $(CFLAGS) -o $@ $(TEST_LEXER) $(LEXER_SRC) $(TOKEN_SRC)
+$(LEXER_EXE): $(LEXER_SRC) $(TOKEN_SRC) $(TEST_LEXER_SRC) $(LEXER_HDR) $(TOKEN_HDR)
+	@echo "Compiling test_lexer..."
+	$(CC) $(CFLAGS) -o $@ $(TEST_LEXER_SRC) $(LEXER_SRC) $(TOKEN_SRC)
 
-# Clean build
+# Separate targets to build and run each test
+test_token: $(TOKEN_EXE)
+	@echo "\n--- Running test_token ---"
+	@$(TOKEN_EXE)
+
+test_lexer: $(LEXER_EXE)
+	@echo "\n--- Running test_lexer ---"
+	@$(LEXER_EXE)
+
+# Run both
+run: test_token test_lexer
+
+# Clean
 clean:
-	rm -rf $(BIN_DIR)
+	@echo "Cleaning..."
+	@rm -rf $(BIN_DIR)
 
-.PHONY: all clean
+.PHONY: all clean run test_token test_lexer
