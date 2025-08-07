@@ -1,61 +1,64 @@
-# Directories
-SRC_DIR := src
-INC_DIR := include
-TEST_DIR := tests
-BIN_DIR := bin
-
 # Compiler and flags
-CC := gcc
-CFLAGS := -Wall -Wextra -I$(INC_DIR) -g
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99 -g -Iinclude
+
+# Directories
+SRC_DIR = src
+TEST_DIR = tests
+INCLUDE_DIR = include
+BIN_DIR = bin
+BUILD_DIR = build
+
+# Executable target
+TARGET = $(BIN_DIR)/simplelang
 
 # Source files
-TOKEN_SRC := $(SRC_DIR)/token.c
-LEXER_SRC := $(SRC_DIR)/lexer.c
+SOURCES = $(SRC_DIR)/main.c $(SRC_DIR)/token.c $(SRC_DIR)/lexer.c $(SRC_DIR)/parser.c $(SRC_DIR)/ast.c
 
-# Header files
-TOKEN_HDR := $(INC_DIR)/token.h
-LEXER_HDR := $(INC_DIR)/lexer.h
+# Object files in build/
+OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SOURCES))
 
-# Test files
-TEST_TOKEN_SRC := $(TEST_DIR)/test_token.c
-TEST_LEXER_SRC := $(TEST_DIR)/test_lexer.c
+# Default target
+all: $(TARGET)
 
-# Output executables
-TOKEN_EXE := $(BIN_DIR)/test_token
-LEXER_EXE := $(BIN_DIR)/test_lexer
+# Create necessary directories
+$(BIN_DIR) $(BUILD_DIR):
+	mkdir -p $@
 
-# Ensure bin directory
-$(BIN_DIR):
-	@mkdir -p $(BIN_DIR)
+# Compile object files into build/
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Default target builds all tests
-all: $(BIN_DIR) $(TOKEN_EXE) $(LEXER_EXE)
+# Build main executable
+$(TARGET): $(OBJECTS) | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $(OBJECTS)
 
-# Build test_token
-$(TOKEN_EXE): $(TOKEN_SRC) $(TEST_TOKEN_SRC) $(TOKEN_HDR)
-	@echo "Compiling test_token..."
-	$(CC) $(CFLAGS) -o $@ $(TEST_TOKEN_SRC) $(TOKEN_SRC)
+# Run the program
+run: $(TARGET)
+	$(TARGET) input.sl
 
-# Build test_lexer
-$(LEXER_EXE): $(LEXER_SRC) $(TOKEN_SRC) $(TEST_LEXER_SRC) $(LEXER_HDR) $(TOKEN_HDR)
-	@echo "Compiling test_lexer..."
-	$(CC) $(CFLAGS) -o $@ $(TEST_LEXER_SRC) $(LEXER_SRC) $(TOKEN_SRC)
+# === Test Targets ===
+test-token: | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/test_token $(TEST_DIR)/test_token.c $(SRC_DIR)/token.c
+	$(BIN_DIR)/test_token
 
-# Separate targets to build and run each test
-test_token: $(TOKEN_EXE)
-	@echo "\n--- Running test_token ---"
-	@$(TOKEN_EXE)
+test-lexer: | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/test_lexer $(TEST_DIR)/test_lexer.c $(SRC_DIR)/token.c $(SRC_DIR)/lexer.c
+	$(BIN_DIR)/test_lexer
 
-test_lexer: $(LEXER_EXE)
-	@echo "\n--- Running test_lexer ---"
-	@$(LEXER_EXE)
+test-parser: | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/test_parser $(TEST_DIR)/test_parser.c $(SRC_DIR)/token.c $(SRC_DIR)/lexer.c $(SRC_DIR)/ast.c $(SRC_DIR)/parser.c
+	$(BIN_DIR)/test_parser
 
-# Run both
-run: test_token test_lexer
+# === Valgrind Target ===
+valgrind: test-token test-lexer test-parser $(TARGET)
+	valgrind --leak-check=full --show-leak-kinds=all $(BIN_DIR)/test_token
+	valgrind --leak-check=full --show-leak-kinds=all $(BIN_DIR)/test_lexer
+	valgrind --leak-check=full --show-leak-kinds=all $(BIN_DIR)/test_parser
+	valgrind --leak-check=full --show-leak-kinds=all $(TARGET) input.sl
 
-# Clean
+# === Cleanup ===
 clean:
-	@echo "Cleaning..."
-	@rm -rf $(BIN_DIR)
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
-.PHONY: all clean run test_token test_lexer
+.PHONY: all run clean test-token test-lexer test-parser valgrind
