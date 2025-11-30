@@ -1,6 +1,6 @@
 # SimpleLang Compiler
 
-A simple programming language compiler implementation written in C, featuring lexical analysis, parsing, and Abstract Syntax Tree (AST) generation.
+A complete programming language compiler implementation written in C, featuring lexical analysis, parsing, Abstract Syntax Tree (AST) generation, and code generation for 8-bit CPU architecture.
 
 ## Language Constructs
 
@@ -75,25 +75,34 @@ factor → NUMBER | IDENTIFIER | '(' expression ')'
 ## Project Structure
 
 ```
-simplelang/
+simple-compiler/
 ├── include/
 │   ├── token.h       # Token definitions and functions
 │   ├── lexer.h       # Lexical analyzer interface
 │   ├── parser.h      # Parser interface
-│   └── ast.h         # Abstract Syntax Tree definitions
+│   ├── ast.h         # Abstract Syntax Tree definitions
+│   └── codegen.h     # Code generator interface
 ├── src/
 │   ├── token.c       # Token implementation
 │   ├── lexer.c       # Lexical analyzer implementation
 │   ├── parser.c      # Parser implementation
 │   ├── ast.c         # AST implementation
+│   ├── codegen.c     # Code generator implementation
 │   └── main.c        # Main compiler driver
 ├── tests/
 │   ├── test_token.c  # Token module tests
 │   ├── test_lexer.c  # Lexer module tests
-│   └── test_parser.c # Parser module tests
+│   ├── test_parser.c # Parser module tests
+│   ├── test_codegen.c # Code generator tests
+│   └── test_8bit_integration.c # 8-bit CPU integration tests
+├── examples/
+│   ├── simple_math.sl # Sample arithmetic program
+│   ├── conditional.sl # Sample conditional program
+│   └── counter.sl     # Sample counter program
 ├── build/            # Object files (.o)
 ├── bin/              # Compiled executables
-├── input.sl          # Sample SimpleLang program
+├── output/           # Generated assembly files
+├── compile_and_assemble.sh # Complete compilation pipeline
 ├── Makefile
 └── README.md
 ```
@@ -169,6 +178,12 @@ make test-lexer
 
 # Build and run parser tests
 make test-parser
+
+# Build and run code generator tests
+make test-codegen
+
+# Build and run 8-bit CPU integration tests
+make test-8bit
 ```
 
 #### Memory Leak Detection
@@ -288,7 +303,15 @@ Each test will show:
 
 1. **Lexical Analysis (Tokenization)**: Converts source code into tokens
 2. **Syntax Analysis (Parsing)**: Builds Abstract Syntax Tree from tokens
-3. **AST Visualization**: Pretty-prints the generated AST structure
+3. **Code Generation**: Translates AST to 8-bit CPU assembly
+4. **AST Visualization**: Pretty-prints the generated AST structure
+
+### 8-bit CPU Code Generator
+
+- **Stack-based expression evaluation** for arithmetic operations
+- **Variable management** with memory allocation (%var_<name> labels)
+- **Assembly generation** with .text and .data sections
+- **Instruction set support**: ldi, lda, sta, push, pop, mov, add, sub, cmp, hlt
 
 ## Error Handling
 
@@ -297,6 +320,20 @@ The compiler provides detailed error messages with line and column information:
 - Syntax errors for malformed expressions
 - Memory allocation error handling
 
-## Future Extensions
+## Supported Features
 
-- Code generator with advanced error handling
+### ✅ Implemented
+- Variable declarations with initialization
+- Arithmetic expressions (+, -)
+- Variable assignments
+- Sequential statement execution
+- 8-bit CPU assembly code generation
+
+### ⚠️ Partial Support
+- Conditional statements (generates assembly)
+
+### 🔄 Future Extensions
+- Loop constructs (while, for)
+- Function definitions and calls
+- Arrays and complex data types
+- Optimized code generation
