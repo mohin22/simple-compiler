@@ -4,6 +4,7 @@
 #include "../include/lexer.h"
 #include "../include/parser.h"
 #include "../include/ast.h"
+#include "../include/codegen.h"
 
 int main(int argc, char *argv[])
 {
@@ -79,6 +80,30 @@ int main(int argc, char *argv[])
         printf("PARSING SUCCESSFUL!\n");
         printf("Generated Abstract Syntax Tree (AST):\n\n");
         print_ast(ast, 0, 1, "");
+        
+        // Code Generation
+        printf("\nCode Generation (8-bit CPU Assembly)\n");
+        CodeGenerator *codegen = create_codegen();
+        if (codegen) {
+            generate_code(codegen, ast);
+            
+            // Create output filename in output directory
+            char output_filename[256];
+            char *base = strrchr(input_filename, '/');
+            if (base) base++; else base = input_filename;
+            
+            strcpy(output_filename, "output/");
+            strcat(output_filename, base);
+            char *dot = strrchr(output_filename, '.');
+            if (dot) *dot = '\0';
+            strcat(output_filename, ".asm");
+            
+            write_assembly_file(codegen, output_filename);
+            printf("Assembly code generated: %s\n", output_filename);
+            
+            free_codegen(codegen);
+        }
+        
         free_ast(ast);
     }
     // Throw error if AST not generated

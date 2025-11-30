@@ -13,7 +13,7 @@ BUILD_DIR = build
 TARGET = $(BIN_DIR)/simplelang
 
 # Source files
-SOURCES = $(SRC_DIR)/main.c $(SRC_DIR)/token.c $(SRC_DIR)/lexer.c $(SRC_DIR)/parser.c $(SRC_DIR)/ast.c
+SOURCES = $(SRC_DIR)/main.c $(SRC_DIR)/token.c $(SRC_DIR)/lexer.c $(SRC_DIR)/parser.c $(SRC_DIR)/ast.c $(SRC_DIR)/codegen.c
 
 # Object files in build/
 OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SOURCES))
@@ -50,6 +50,14 @@ test-parser: | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/test_parser $(TEST_DIR)/test_parser.c $(SRC_DIR)/token.c $(SRC_DIR)/lexer.c $(SRC_DIR)/ast.c $(SRC_DIR)/parser.c
 	$(BIN_DIR)/test_parser
 
+test-codegen: | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/test_codegen $(TEST_DIR)/test_codegen.c $(SRC_DIR)/token.c $(SRC_DIR)/lexer.c $(SRC_DIR)/ast.c $(SRC_DIR)/parser.c $(SRC_DIR)/codegen.c
+	$(BIN_DIR)/test_codegen
+
+test-8bit: | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/test_8bit_integration $(TEST_DIR)/test_8bit_integration.c $(SRC_DIR)/token.c $(SRC_DIR)/lexer.c $(SRC_DIR)/ast.c $(SRC_DIR)/parser.c $(SRC_DIR)/codegen.c
+	$(BIN_DIR)/test_8bit_integration
+
 # === Valgrind Target ===
 valgrind: test-token test-lexer test-parser $(TARGET)
 	valgrind --leak-check=full --show-leak-kinds=all $(BIN_DIR)/test_token
@@ -59,6 +67,6 @@ valgrind: test-token test-lexer test-parser $(TARGET)
 
 # === Cleanup ===
 clean:
-	rm -rf $(BUILD_DIR) $(BIN_DIR)
+	rm -rf $(BUILD_DIR) $(BIN_DIR) output
 
 .PHONY: all run clean test-token test-lexer test-parser valgrind

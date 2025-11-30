@@ -10,7 +10,14 @@ lda %var_b
 mov B A
 pop A
 add
-sta %var_a
+sta %var_sum
+lda %var_a
+push A
+lda %var_b
+mov B A
+pop A
+sub
+sta %var_diff
 hlt
 
 .data
@@ -21,4 +28,3 @@ var_diff = 0
 var_x = 0
 var_counter = 0
 var_result = 0
-var_temp = 0
